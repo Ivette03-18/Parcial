@@ -1,0 +1,138 @@
+class Habitacion:
+    def __init__(self, tipo, precio_por_noche, disponible=True):
+        self.tipo = tipo
+        self.precio_por_noche = precio_por_noche
+        self.disponible = disponible
+
+    def reservar(self):
+        if self.disponible:
+            self.disponible = False
+            return True
+        else:
+            print(f"La habitación de tipo {self.tipo} no está disponible.")
+            return False
+
+    def liberar(self):
+        self.disponible = True
+
+
+class ServicioExtra:
+    def __init__(self, nombre, precio):
+        self.nombre = nombre
+        self.precio = precio
+
+
+class Cliente:
+    def __init__(self, nombre, noches_estancia):
+        self.nombre = nombre
+        self.noches_estancia = noches_estancia
+        self.habitacion = None
+        self.servicios_extra = []
+
+    def elegir_habitacion(self, habitacion):
+        self.habitacion = habitacion
+
+    def agregar_servicio_extra(self, servicio):
+        self.servicios_extra.append(servicio)
+
+    def calcular_total(self):
+        total = self.habitacion.precio_por_noche * self.noches_estancia
+        for servicio in self.servicios_extra:
+            total += servicio.precio
+        return total
+
+    def generar_factura(self):
+        print("\nFactura Detallada")
+        print("--------------------------")
+        print(f"Cliente: {self.nombre}")
+        print(f"Habitación: {self.habitacion.tipo}")
+        print(f"Noches de Estancia: {self.noches_estancia}")
+        print(f"Precio por noche: ${self.habitacion.precio_por_noche:.2f}")
+        print(f"Subtotal habitación: ${self.habitacion.precio_por_noche * self.noches_estancia:.2f}")
+        if self.servicios_extra:
+            print("\nServicios Extra:")
+            for servicio in self.servicios_extra:
+                print(f"- {servicio.nombre}: ${servicio.precio:.2f}")
+        total = self.calcular_total()
+        print("\n--------------------------")
+        print(f"Total a pagar: ${total:.2f}")
+        print("--------------------------")
+
+
+class Hotel:
+    def __init__(self):
+        self.habitaciones = [
+            Habitacion("Sencilla", 100.0),
+            Habitacion("Doble", 150.0),
+            Habitacion("Suite", 300.0)
+        ]
+        self.servicios_extra = [
+            ServicioExtra("Uso de piscina", 20.0),
+            ServicioExtra("Cancha de golf", 50.0)
+        ]
+
+    def mostrar_habitaciones(self):
+        print("\nOpciones de Habitaciones Disponibles:")
+        for idx, habitacion in enumerate(self.habitaciones, 1):
+            estado = "Disponible" if habitacion.disponible else "No disponible"
+            print(f"{idx}. {habitacion.tipo} - ${habitacion.precio_por_noche:.2f} por noche - {estado}")
+
+    def mostrar_servicios(self):
+        print("\nServicios Extra Disponibles:")
+        for idx, servicio in enumerate(self.servicios_extra, 1):
+            print(f"{idx}. {servicio.nombre} - ${servicio.precio:.2f}")
+
+    def reservar_habitacion(self, cliente):
+        self.mostrar_habitaciones()
+        opcion = int(input("\nSeleccione el número de la habitación que desea reservar: ")) - 1
+        if 0 <= opcion < len(self.habitaciones):
+            habitacion = self.habitaciones[opcion]
+            if habitacion.reservar():
+                cliente.elegir_habitacion(habitacion)
+                print(f"Habitación '{habitacion.tipo}' reservada con éxito.")
+        else:
+            print("Opción no válida.")
+
+    def solicitar_servicios(self, cliente):
+        self.mostrar_servicios()
+        while True:
+            opcion = input("\nSeleccione el número del servicio que desea agregar (o 'salir' para terminar): ")
+            if opcion.lower() == 'salir':
+                break
+            opcion = int(opcion) - 1
+            if 0 <= opcion < len(self.servicios_extra):
+                servicio = self.servicios_extra[opcion]
+                cliente.agregar_servicio_extra(servicio)
+                print(f"Servicio '{servicio.nombre}' agregado.")
+            else:
+                print("Opción no válida.")
+
+    def procesar_cliente(self):
+        nombre_cliente = input("\nIngrese el nombre del cliente: ")
+        noches_estancia = int(input("Ingrese el número de noches de estancia: "))
+        cliente = Cliente(nombre_cliente, noches_estancia)
+        self.reservar_habitacion(cliente)
+        self.solicitar_servicios(cliente)
+        cliente.generar_factura()
+
+
+def main():
+    hotel = Hotel()
+    
+    while True:
+        print("\n--- Menú Principal del Hotel ---")
+        print("1. Procesar nuevo cliente")
+        print("2. Salir")
+        opcion = input("Seleccione una opción: ")
+
+        if opcion == '1':
+            hotel.procesar_cliente()
+        elif opcion == '2':
+            print("Saliendo del sistema. ¡Gracias por usar el sistema de reservas del hotel!")
+            break
+        else:
+            print("Opción no válida. Por favor, intente de nuevo.")
+
+
+if __name__ == "__main__":
+    main()

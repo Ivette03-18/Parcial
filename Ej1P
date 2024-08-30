@@ -1,0 +1,154 @@
+class Producto:
+    def __init__(self, nombre, cantidad, precio_unitario, precio_sugerido):
+        self.nombre = nombre
+        self.cantidad = cantidad
+        self.precio_unitario = precio_unitario
+        self.precio_sugerido = precio_sugerido
+
+    def actualizar_cantidad(self, cantidad):
+        self.cantidad += cantidad
+
+    def actualizar_precio_sugerido(self, nuevo_precio):
+        self.precio_sugerido = nuevo_precio
+
+
+class Inventario:
+    def __init__(self):
+        self.productos = []
+
+    def agregar_producto(self, producto):
+        self.productos.append(producto)
+
+    def actualizar_inventario(self, nombre, cantidad):
+        for producto in self.productos:
+            if producto.nombre == nombre:
+                producto.actualizar_cantidad(cantidad)
+                break
+        else:
+            print(f"Producto '{nombre}' no encontrado en el inventario.")
+
+    def mostrar_inventario(self):
+        print("Inventario actual:")
+        for producto in self.productos:
+            print(f"{producto.nombre}: {producto.cantidad} unidades - Precio sugerido: ${producto.precio_sugerido:.2f}")
+
+    def eliminar_producto(self, nombre):
+        self.productos = [producto for producto in self.productos if producto.nombre != nombre]
+
+
+class Venta:
+    def __init__(self, productos, pago_cliente):
+        self.productos = productos
+        self.total = 0
+        self.vuelto = 0
+        self.pago_cliente = pago_cliente
+
+    def calcular_total(self):
+        self.total = sum(producto.precio_unitario * producto.cantidad for producto in self.productos)
+        return self.total
+
+    def calcular_vuelto(self):
+        self.vuelto = self.pago_cliente - self.total if self.pago_cliente > self.total else 0
+        return self.vuelto
+
+
+class Proveedor:
+    def __init__(self, inventario):
+        self.inventario = inventario
+
+    def entregar_producto(self, nombre, cantidad, precio_sugerido):
+        for producto in self.inventario.productos:
+            if producto.nombre == nombre:
+                producto.actualizar_cantidad(cantidad)
+                producto.actualizar_precio_sugerido(precio_sugerido)
+                print(f"Producto '{nombre}' actualizado con nueva cantidad y precio sugerido.")
+                return
+        # Si no está en el inventario, agregar un nuevo producto
+        nuevo_producto = Producto(nombre, cantidad, precio_sugerido, precio_sugerido)
+        self.inventario.agregar_producto(nuevo_producto)
+        print(f"Producto '{nombre}' agregado al inventario con {cantidad} unidades y precio sugerido ${precio_sugerido:.2f}.")
+
+
+class Tienda:
+    def __init__(self):
+        self.inventario = Inventario()
+        self.proveedor = Proveedor(self.inventario)
+
+    def registrar_venta(self):
+        print("\nRegistrar una venta:")
+        productos_comprados = []
+        while True:
+            nombre_producto = input("Nombre del producto (o 'salir' para terminar): ")
+            if nombre_producto.lower() == 'salir':
+                break
+            cantidad = int(input(f"Cantidad de '{nombre_producto}' que el cliente compra: "))
+            for producto in self.inventario.productos:
+                if producto.nombre == nombre_producto:
+                    if producto.cantidad >= cantidad:
+                        productos_comprados.append(Producto(producto.nombre, cantidad, producto.precio_sugerido, producto.precio_sugerido))
+                        break
+                    else:
+                        print(f"Cantidad no disponible. Solo hay {producto.cantidad} en stock.")
+                        break
+            else:
+                print(f"Producto '{nombre_producto}' no encontrado en el inventario.")
+        
+        if productos_comprados:
+            pago_cliente = float(input("Monto con el que paga el cliente: "))
+            venta = Venta(productos_comprados, pago_cliente)
+            total = venta.calcular_total()
+            vuelto = venta.calcular_vuelto()
+            print(f"Total de la venta: ${total:.2f}")
+            if vuelto > 0:
+                print(f"Vuelto al cliente: ${vuelto:.2f}")
+            else:
+                print("No se requiere cambio.")
+            # Actualizar el inventario
+            for producto in productos_comprados:
+                self.inventario.actualizar_inventario(producto.nombre, -producto.cantidad)
+    
+    def gestionar_inventario(self):
+        print("\nGestión del Inventario:")
+        self.inventario.mostrar_inventario()
+    
+    def gestionar_proveedor(self):
+        print("\nGestión de Proveedores:")
+        nombre_producto = input("Nombre del producto a entregar: ")
+        cantidad = int(input(f"Cantidad de '{nombre_producto}' que entrega el proveedor: "))
+        precio_sugerido = float(input(f"Precio sugerido de venta para '{nombre_producto}': "))
+        self.proveedor.entregar_producto(nombre_producto, cantidad, precio_sugerido)
+
+    def mostrar_inventario(self):
+        self.inventario.mostrar_inventario()
+
+
+def main():
+    tienda = Tienda()
+
+    while True:
+        print("\n--- Menú Principal ---")
+        print("1. Registrar Venta")
+        print("2. Mostrar Inventario")
+        print("3. Gestionar Inventario")
+        print("4. Gestionar Proveedor")
+        print("5. Salir")
+
+        opcion = input("Seleccione una opción: ")
+
+        if opcion == '1':
+            tienda.registrar_venta()
+        elif opcion == '2':
+            tienda.mostrar_inventario()
+        elif opcion == '3':
+            tienda.gestionar_inventario()
+        elif opcion == '4':
+            tienda.gestionar_proveedor()
+        elif opcion == '5':
+            print("Saliendo del programa. ¡Gracias por usar el sistema de gestión de la tienda!")
+            break
+        else:
+            print("Opción no válida. Por favor, intente de nuevo.")
+
+
+if __name__ == "__main__":
+    main()
